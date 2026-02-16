@@ -1,1103 +1,883 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TikTok SMM Blaster</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface-2: #1a1a26;
-    --surface-3: #22222f;
-    --border: #2a2a3a;
-    --border-hover: #3a3a4f;
-    --text: #e8e8f0;
-    --text-dim: #8888a0;
-    --text-muted: #55556a;
-    --accent: #ff3366;
-    --accent-glow: rgba(255, 51, 102, 0.15);
-    --accent-2: #00e5ff;
-    --accent-2-glow: rgba(0, 229, 255, 0.12);
-    --success: #00e676;
-    --warning: #ffab00;
-    --error: #ff5252;
-    --radius: 10px;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Ambient background */
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(ellipse at 20% 20%, rgba(255,51,102,0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(0,229,255,0.04) 0%, transparent 50%);
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .app {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 24px;
-  }
-
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .logo {
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, var(--accent), #cc2952);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -1px;
-    box-shadow: 0 4px 20px rgba(255,51,102,0.25);
-  }
-
-  .header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .header h1 span {
-    color: var(--accent);
-  }
-
-  .balance-badge {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--success);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .balance-badge::before {
-    content: '●';
-    font-size: 8px;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  /* Config Section */
-  .config-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .config-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-  }
-
-  .config-card label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-
-  input, select {
-    width: 100%;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  input:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-
-  input::placeholder {
-    color: var(--text-muted);
-  }
-
-  /* Profile Fetch Section */
-  .fetch-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-
-  .fetch-row {
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-  }
-
-  .fetch-row .input-group {
-    flex: 1;
-  }
-
-  .fetch-row label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-
-  .btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 2px 12px rgba(255,51,102,0.3);
-  }
-
-  .btn-primary:hover {
-    background: #e62d5c;
-    box-shadow: 0 4px 20px rgba(255,51,102,0.4);
-    transform: translateY(-1px);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .btn-secondary {
-    background: var(--surface-3);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-
-  .btn-secondary:hover {
-    border-color: var(--border-hover);
-    background: var(--border);
-  }
-
-  .btn-blast {
-    background: linear-gradient(135deg, var(--accent), #cc2952);
-    color: white;
-    font-size: 15px;
-    font-weight: 700;
-    padding: 16px 40px;
-    box-shadow: 0 4px 24px rgba(255,51,102,0.35);
-    letter-spacing: 0.5px;
-  }
-
-  .btn-blast:hover {
-    box-shadow: 0 6px 32px rgba(255,51,102,0.5);
-    transform: translateY(-2px);
-  }
-
-  .btn-blast:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Services Config */
-  .services-section {
-    margin-bottom: 24px;
-  }
-
-  .services-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  .services-header h2 {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .service-row {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    display: grid;
-    grid-template-columns: 1fr 120px 140px 40px 40px;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 8px;
-    transition: border-color 0.2s;
-  }
-
-  .service-row:hover {
-    border-color: var(--border-hover);
-  }
-
-  .service-row label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    display: block;
-  }
-
-  .service-row input {
-    padding: 10px 12px;
-  }
-
-  .service-toggle {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface-2);
-    color: var(--text-muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.2s;
-  }
-
-  .service-toggle.active {
-    background: var(--accent-glow);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .service-remove {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface-2);
-    color: var(--text-muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .service-remove:hover {
-    background: rgba(255,82,82,0.12);
-    border-color: var(--error);
-    color: var(--error);
-  }
-
-  .services-tip {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .services-tip strong {
-    color: var(--accent-2);
-  }
-
-  .add-service-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-
-  .add-service-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
-
-  /* Videos Table */
-  .videos-section {
-    margin-bottom: 24px;
-  }
-
-  .videos-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .videos-header h2 {
-    font-size: 16px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .count-badge {
-    background: var(--surface-3);
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-2);
-  }
-
-  .select-actions {
-    display: flex;
-    gap: 8px;
-  }
-
-  .videos-table {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .video-row {
-    display: grid;
-    grid-template-columns: 40px 1fr 140px;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-  }
-
-  .video-row:last-child {
-    border-bottom: none;
-  }
-
-  .video-row:hover {
-    background: var(--surface-2);
-  }
-
-  .video-row.selected {
-    background: var(--accent-glow);
-  }
-
-  .video-row input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  .video-link {
-    color: var(--text-dim);
-    text-decoration: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .video-link:hover {
-    color: var(--accent-2);
-  }
-
-  .video-status {
-    text-align: right;
-    font-size: 11px;
-  }
-
-  .status-idle { color: var(--text-muted); }
-  .status-pending { color: var(--warning); }
-  .status-sent { color: var(--success); }
-  .status-error { color: var(--error); }
-
-  .empty-state {
-    padding: 60px 20px;
-    text-align: center;
-    color: var(--text-muted);
-  }
-
-  .empty-state .icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  /* Blast Section */
-  .blast-section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-  }
-
-  .blast-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .blast-stat {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  .blast-stat strong {
-    color: var(--text);
-  }
-
-  /* Log */
-  .log-section {
-    margin-top: 24px;
-  }
-
-  .log-section h2 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-
-  .log-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    max-height: 300px;
-    overflow-y: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.8;
-  }
-
-  .log-box::-webkit-scrollbar {
-    width: 6px;
-  }
-  .log-box::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .log-box::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 3px;
-  }
-
-  .log-entry { color: var(--text-dim); }
-  .log-entry.success { color: var(--success); }
-  .log-entry.error { color: var(--error); }
-  .log-entry.info { color: var(--accent-2); }
-  .log-entry .timestamp { color: var(--text-muted); margin-right: 8px; }
-
-  /* Spinner */
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: inline-block;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .config-grid { grid-template-columns: 1fr; }
-    .service-row { grid-template-columns: 1fr; }
-    .blast-section { flex-direction: column; gap: 16px; }
-    .header { flex-direction: column; gap: 12px; align-items: flex-start; }
-  }
-</style>
-</head>
-<body>
-<div class="app">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="logo">⚡</div>
-      <h1>TikTok <span>SMM Blaster</span></h1>
-    </div>
-    <div class="balance-badge" id="balanceDisplay">Balance: —</div>
-  </div>
-
-  <!-- API Config -->
-  <div class="config-grid">
-    <div class="config-card">
-      <label>JAP API Key</label>
-      <input type="password" id="apiKey" placeholder="Enter your JustAnotherPanel API key" />
-    </div>
-    <div class="config-card" style="display:flex; align-items:flex-end; gap:12px;">
-      <div style="flex:1">
-        <label>API URL</label>
-        <input type="text" id="apiUrl" value="https://justanotherpanel.com/api/v2" />
-      </div>
-      <button class="btn btn-secondary" onclick="fetchBalance()">Check Balance</button>
-    </div>
-  </div>
-
-  <!-- Fetch Profile -->
-  <div class="fetch-section">
-    <div class="fetch-row">
-      <div class="input-group">
-        <label>TikTok Profile URL</label>
-        <input type="text" id="profileUrl" placeholder="https://www.tiktok.com/@yourusername" />
-      </div>
-      <button class="btn btn-primary" id="fetchBtn" onclick="scrapeTikTok()">
-        ⚡ Scrape Videos
-      </button>
-    </div>
-    <div id="scrapeStatus" style="margin-top:12px; display:none;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span class="spinner"></span>
-        <span id="scrapeMsg" style="font-size:13px; color:var(--accent-2); font-family:'JetBrains Mono',monospace;">Scraping...</span>
-      </div>
-    </div>
-    <details style="margin-top:12px;">
-      <summary style="font-size:12px; color:var(--text-muted); cursor:pointer;">Or paste links manually</summary>
-      <div style="margin-top:10px;">
-        <textarea id="linksInput" rows="4" style="width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px; outline:none; resize:vertical;" placeholder="https://www.tiktok.com/@user/video/1234567890&#10;https://www.tiktok.com/@user/video/0987654321"></textarea>
-        <button class="btn btn-secondary" style="margin-top:10px;" onclick="loadLinks()">Load Links</button>
-      </div>
-    </details>
-  </div>
-
-  <!-- Services -->
-  <div class="services-section">
-    <div class="services-header">
-      <h2>Services</h2>
-    </div>
-    <div class="services-tip">💡 Quick IDs — Saves: <strong>54</strong> · Likes: <strong>10024</strong></div>
-    <div id="servicesList">
-      <div class="service-row">
-        <div>
-          <label>Service Name</label>
-          <input type="text" value="TikTok Likes" class="svc-name" />
-        </div>
-        <div>
-          <label>Service ID</label>
-          <input type="text" value="10024" class="svc-id" />
-        </div>
-        <div>
-          <label>Quantity</label>
-          <input type="number" value="500" class="svc-qty" />
-        </div>
-        <button class="service-toggle active" onclick="toggleService(this)" title="Toggle on/off">✓</button>
-        <button class="service-remove" onclick="removeService(this)" title="Remove service">✕</button>
-      </div>
-      <div class="service-row">
-        <div>
-          <label>Service Name</label>
-          <input type="text" value="TikTok Saves" class="svc-name" />
-        </div>
-        <div>
-          <label>Service ID</label>
-          <input type="text" value="54" class="svc-id" />
-        </div>
-        <div>
-          <label>Quantity</label>
-          <input type="number" value="200" class="svc-qty" />
-        </div>
-        <button class="service-toggle active" onclick="toggleService(this)" title="Toggle on/off">✓</button>
-        <button class="service-remove" onclick="removeService(this)" title="Remove service">✕</button>
-      </div>
-    </div>
-    <button class="add-service-btn" onclick="addService()">+ Add Service</button>
-  </div>
-
-  <!-- Videos List -->
-  <div class="videos-section">
-    <div class="videos-header">
-      <h2>Videos <span class="count-badge" id="videoCount">0</span></h2>
-      <div class="select-actions">
-        <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
-        <button class="btn btn-secondary" onclick="deselectAll()">Deselect All</button>
-      </div>
-    </div>
-    <div class="videos-table" id="videosTable">
-      <div class="empty-state">
-        <div class="icon">📋</div>
-        <p>No videos loaded. Paste links above and click "Load Links".</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Blast Controls -->
-  <div class="blast-section">
-    <div class="blast-info">
-      <div class="blast-stat">Selected: <strong id="selectedCount">0</strong></div>
-      <div class="blast-stat">Services: <strong id="activeServices">0</strong></div>
-      <div class="blast-stat">Total Orders: <strong id="totalOrders">0</strong></div>
-    </div>
-    <button class="btn btn-blast" id="blastBtn" onclick="massBlast()" disabled>
-      ⚡ MASS SEND
-    </button>
-  </div>
-
-  <!-- Log -->
-  <div class="log-section">
-    <h2>Activity Log</h2>
-    <div class="log-box" id="logBox">
-      <div class="log-entry info"><span class="timestamp">[--:--:--]</span> Dashboard ready. Configure API key and load videos to begin.</div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // State
+// ==UserScript==
+// @name         TikTok SMM Blaster
+// @namespace    https://justanotherpanel.com
+// @version      1.0
+// @description  TikTok bulk order dashboard injected into JAP. Auto-grabs API key, scrapes TikTok profiles, mass sends orders.
+// @match        https://justanotherpanel.com/*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
+// @connect      www.tiktok.com
+// @connect      justanotherpanel.com
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() {
+  'use strict';
+
+  // ─── Inject CSS ───
+  GM_addStyle(`
+    #blaster-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ff3366, #cc2952);
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(255,51,102,0.4);
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #blaster-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 32px rgba(255,51,102,0.6);
+    }
+
+    #blaster-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100000;
+      justify-content: center;
+      align-items: center;
+    }
+    #blaster-overlay.open { display: flex; }
+
+    #blaster-panel {
+      width: 780px;
+      max-height: 88vh;
+      background: #0c0c14;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    }
+
+    #blaster-panel * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .bl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid #2a2a3a;
+      background: #10101a;
+    }
+    .bl-header-left { display: flex; align-items: center; gap: 12px; }
+    .bl-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #ff3366, #cc2952);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 3px 12px rgba(255,51,102,0.3);
+    }
+    .bl-title { font-size: 16px; font-weight: 700; color: #e8e8f0; font-family: 'Segoe UI',sans-serif; }
+    .bl-title span { color: #ff3366; }
+    .bl-balance {
+      background: #1a1a26;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #00e676;
+    }
+    .bl-close {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      border: 1px solid #2a2a3a;
+      background: #1a1a26;
+      color: #8888a0;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .bl-close:hover { background: rgba(255,82,82,0.15); border-color: #ff5252; color: #ff5252; }
+
+    .bl-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+    .bl-body::-webkit-scrollbar { width: 5px; }
+    .bl-body::-webkit-scrollbar-track { background: transparent; }
+    .bl-body::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+    .bl-section {
+      background: #12121a;
+      border: 1px solid #2a2a3a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .bl-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #55556a;
+      margin-bottom: 6px;
+      font-family: 'Segoe UI',sans-serif;
+    }
+
+    .bl-input, .bl-textarea {
+      width: 100%;
+      background: #1a1a26;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      padding: 9px 12px;
+      color: #e8e8f0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .bl-input:focus, .bl-textarea:focus { border-color: #ff3366; }
+    .bl-input::placeholder, .bl-textarea::placeholder { color: #55556a; }
+    .bl-textarea { resize: vertical; min-height: 60px; }
+
+    .bl-row { display: flex; gap: 10px; align-items: flex-end; }
+    .bl-row > .bl-grow { flex: 1; }
+
+    .bl-btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Segoe UI',sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bl-btn-sm { padding: 6px 12px; font-size: 11px; }
+    .bl-btn-primary { background: #ff3366; color: white; }
+    .bl-btn-primary:hover { background: #e62d5c; }
+    .bl-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .bl-btn-secondary { background: #22222f; color: #e8e8f0; border: 1px solid #2a2a3a; }
+    .bl-btn-secondary:hover { background: #2a2a3a; }
+    .bl-btn-blast {
+      background: linear-gradient(135deg, #ff3366, #cc2952);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 32px;
+      box-shadow: 0 4px 20px rgba(255,51,102,0.35);
+    }
+    .bl-btn-blast:hover { box-shadow: 0 6px 28px rgba(255,51,102,0.5); transform: translateY(-1px); }
+    .bl-btn-blast:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .bl-tip {
+      background: #1a1a26;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #8888a0;
+      margin-bottom: 10px;
+      font-family: 'Courier New', monospace;
+    }
+    .bl-tip strong { color: #00e5ff; }
+
+    .bl-svc-row {
+      display: grid;
+      grid-template-columns: 1fr 90px 90px 30px 30px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      background: #1a1a26;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+    .bl-svc-row .bl-input { padding: 7px 10px; font-size: 11px; }
+
+    .bl-svc-btn {
+      width: 30px; height: 30px;
+      border-radius: 5px;
+      border: 1px solid #2a2a3a;
+      background: #22222f;
+      color: #55556a;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .bl-svc-btn.active { background: rgba(255,51,102,0.12); border-color: #ff3366; color: #ff3366; }
+    .bl-svc-btn.remove:hover { background: rgba(255,82,82,0.12); border-color: #ff5252; color: #ff5252; }
+
+    .bl-add-svc {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px dashed #2a2a3a;
+      border-radius: 6px;
+      color: #55556a;
+      cursor: pointer;
+      font-family: 'Segoe UI',sans-serif;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .bl-add-svc:hover { border-color: #ff3366; color: #ff3366; }
+
+    .bl-videos-table {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+    }
+    .bl-videos-table::-webkit-scrollbar { width: 4px; }
+    .bl-videos-table::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+
+    .bl-vid-row {
+      display: grid;
+      grid-template-columns: 26px 1fr 90px;
+      align-items: center;
+      padding: 7px 10px;
+      border-bottom: 1px solid #1a1a26;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #8888a0;
+      transition: background 0.15s;
+    }
+    .bl-vid-row:last-child { border-bottom: none; }
+    .bl-vid-row:hover { background: #1a1a26; }
+    .bl-vid-row.selected { background: rgba(255,51,102,0.08); }
+    .bl-vid-row input[type="checkbox"] { width: 13px; height: 13px; accent-color: #ff3366; cursor: pointer; }
+    .bl-vid-link { color: #8888a0; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bl-vid-link:hover { color: #00e5ff; }
+    .bl-vid-status { text-align: right; font-size: 10px; }
+    .st-idle { color: #55556a; }
+    .st-pending { color: #ffab00; }
+    .st-sent { color: #00e676; }
+    .st-error { color: #ff5252; }
+
+    .bl-empty { padding: 24px; text-align: center; color: #55556a; font-size: 12px; font-family: 'Segoe UI',sans-serif; }
+
+    .bl-blast-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-top: 1px solid #2a2a3a;
+      background: #10101a;
+    }
+    .bl-stats {
+      display: flex;
+      gap: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #8888a0;
+    }
+    .bl-stats strong { color: #e8e8f0; }
+
+    .bl-log {
+      background: #12121a;
+      border: 1px solid #2a2a3a;
+      border-radius: 10px;
+      padding: 12px;
+      max-height: 130px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .bl-log::-webkit-scrollbar { width: 4px; }
+    .bl-log::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+    .bl-log-entry { color: #8888a0; }
+    .bl-log-entry.success { color: #00e676; }
+    .bl-log-entry.error { color: #ff5252; }
+    .bl-log-entry.info { color: #00e5ff; }
+    .bl-log-ts { color: #55556a; margin-right: 6px; }
+
+    .bl-scrape-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #00e5ff;
+      font-family: 'Courier New', monospace;
+    }
+    .bl-scrape-status.visible { display: flex; }
+
+    .bl-spinner {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: bl-spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes bl-spin { to { transform: rotate(360deg); } }
+
+    .bl-details summary {
+      font-size: 11px;
+      color: #55556a;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: 'Segoe UI',sans-serif;
+    }
+    .bl-details summary:hover { color: #8888a0; }
+
+    .bl-vids-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .bl-vids-header h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e8e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Segoe UI',sans-serif;
+    }
+    .bl-count {
+      background: #22222f;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: #00e5ff;
+    }
+
+    .bl-key-status {
+      font-size: 11px;
+      margin-top: 6px;
+      font-family: 'Courier New', monospace;
+    }
+    .bl-key-status.found { color: #00e676; }
+    .bl-key-status.missing { color: #ff5252; }
+  `);
+
+  // ─── State ───
   let videos = [];
+  let apiKey = '';
 
-  // Helpers
-  function ts() {
-    return new Date().toLocaleTimeString('en-US', { hour12: false });
-  }
+  // ─── Build UI ───
+  const toggle = document.createElement('button');
+  toggle.id = 'blaster-toggle';
+  toggle.textContent = '⚡';
+  toggle.title = 'TikTok SMM Blaster';
+  document.body.appendChild(toggle);
+
+  const overlay = document.createElement('div');
+  overlay.id = 'blaster-overlay';
+  overlay.innerHTML = `
+    <div id="blaster-panel">
+      <div class="bl-header">
+        <div class="bl-header-left">
+          <div class="bl-logo">⚡</div>
+          <div class="bl-title">TikTok <span>Blaster</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="bl-balance" id="bl-balance">Balance: —</div>
+          <button class="bl-close" id="bl-close">✕</button>
+        </div>
+      </div>
+
+      <div class="bl-body">
+        <!-- API Key -->
+        <div class="bl-section">
+          <div class="bl-row">
+            <div class="bl-grow">
+              <label class="bl-label">JAP API Key</label>
+              <input type="password" class="bl-input" id="bl-apikey" placeholder="Auto-detected or enter manually" />
+            </div>
+            <div>
+              <label class="bl-label">&nbsp;</label>
+              <button class="bl-btn bl-btn-secondary bl-btn-sm" id="bl-grab-key">🔑 Auto-Grab</button>
+            </div>
+            <div>
+              <label class="bl-label">&nbsp;</label>
+              <button class="bl-btn bl-btn-secondary bl-btn-sm" id="bl-check-bal">Check</button>
+            </div>
+          </div>
+          <div class="bl-key-status" id="bl-key-status"></div>
+        </div>
+
+        <!-- Scrape -->
+        <div class="bl-section">
+          <label class="bl-label">Scrape TikTok Profile</label>
+          <div class="bl-row">
+            <div class="bl-grow">
+              <input type="text" class="bl-input" id="bl-profile" placeholder="https://www.tiktok.com/@username" />
+            </div>
+            <div>
+              <button class="bl-btn bl-btn-primary" id="bl-scrape">⚡ Scrape</button>
+            </div>
+          </div>
+          <div class="bl-scrape-status" id="bl-scrape-status">
+            <span class="bl-spinner"></span>
+            <span id="bl-scrape-msg">Scraping...</span>
+          </div>
+          <details class="bl-details">
+            <summary>Or paste links manually</summary>
+            <div style="margin-top:8px;">
+              <textarea class="bl-textarea" id="bl-links" placeholder="One link per line..."></textarea>
+              <button class="bl-btn bl-btn-secondary bl-btn-sm" style="margin-top:6px;" id="bl-load-links">Load Links</button>
+            </div>
+          </details>
+        </div>
+
+        <!-- Services -->
+        <div class="bl-section">
+          <label class="bl-label">Services</label>
+          <div class="bl-tip">💡 Quick IDs — Saves: <strong>54</strong> · Likes: <strong>10024</strong></div>
+          <div id="bl-services">
+            <div class="bl-svc-row">
+              <input type="text" class="bl-input svc-name" value="TikTok Likes" placeholder="Name" />
+              <input type="text" class="bl-input svc-id" value="10024" placeholder="ID" />
+              <input type="number" class="bl-input svc-qty" value="500" placeholder="Qty" />
+              <button class="bl-svc-btn active" data-action="toggle">✓</button>
+              <button class="bl-svc-btn remove" data-action="remove">✕</button>
+            </div>
+            <div class="bl-svc-row">
+              <input type="text" class="bl-input svc-name" value="TikTok Saves" placeholder="Name" />
+              <input type="text" class="bl-input svc-id" value="54" placeholder="ID" />
+              <input type="number" class="bl-input svc-qty" value="200" placeholder="Qty" />
+              <button class="bl-svc-btn active" data-action="toggle">✓</button>
+              <button class="bl-svc-btn remove" data-action="remove">✕</button>
+            </div>
+          </div>
+          <button class="bl-add-svc" id="bl-add-svc">+ Add Service</button>
+        </div>
+
+        <!-- Videos -->
+        <div class="bl-section">
+          <div class="bl-vids-header">
+            <h3>Videos <span class="bl-count" id="bl-vid-count">0</span></h3>
+            <div style="display:flex;gap:6px;">
+              <button class="bl-btn bl-btn-secondary bl-btn-sm" id="bl-sel-all">All</button>
+              <button class="bl-btn bl-btn-secondary bl-btn-sm" id="bl-sel-none">None</button>
+            </div>
+          </div>
+          <div class="bl-videos-table" id="bl-vid-table">
+            <div class="bl-empty">No videos loaded yet.</div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="bl-log" id="bl-log">
+          <div class="bl-log-entry info"><span class="bl-log-ts">[--:--]</span> Ready. Click "Auto-Grab" to get your API key, then scrape a profile.</div>
+        </div>
+      </div>
+
+      <div class="bl-blast-bar">
+        <div class="bl-stats">
+          <span>Sel: <strong id="bl-sel-count">0</strong></span>
+          <span>Svcs: <strong id="bl-svc-count">0</strong></span>
+          <span>Orders: <strong id="bl-order-count">0</strong></span>
+        </div>
+        <button class="bl-btn bl-btn-blast" id="bl-blast" disabled>⚡ MASS SEND</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // ─── DOM refs ───
+  const $ = id => document.getElementById(id);
+
+  // ─── Toggle panel ───
+  toggle.addEventListener('click', () => overlay.classList.add('open'));
+  $('bl-close').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+  // ─── Helpers ───
+  const ts = () => new Date().toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
   function log(msg, type = '') {
-    const box = document.getElementById('logBox');
-    const entry = document.createElement('div');
-    entry.className = `log-entry ${type}`;
-    entry.innerHTML = `<span class="timestamp">[${ts()}]</span> ${msg}`;
-    box.appendChild(entry);
+    const box = $('bl-log');
+    const d = document.createElement('div');
+    d.className = `bl-log-entry ${type}`;
+    d.innerHTML = `<span class="bl-log-ts">[${ts()}]</span> ${msg}`;
+    box.appendChild(d);
     box.scrollTop = box.scrollHeight;
   }
 
-  function getApiKey() {
-    return document.getElementById('apiKey').value.trim();
-  }
-
-  function getApiUrl() {
-    return document.getElementById('apiUrl').value.trim();
-  }
-
-  // JAP API Call (via CORS proxy since it's a browser dashboard)
+  // ─── JAP API (same-origin, no CORS!) ───
   async function japApi(params) {
-    const apiKey = getApiKey();
-    if (!apiKey) { log('No API key set!', 'error'); return null; }
-
-    const body = new URLSearchParams({ key: apiKey, ...params });
-
+    const key = $('bl-apikey').value.trim();
+    if (!key) { log('No API key!', 'error'); return null; }
     try {
-      const res = await fetch(getApiUrl(), {
+      const res = await fetch('https://justanotherpanel.com/api/v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
+        body: new URLSearchParams({ key, ...params }).toString()
       });
       return await res.json();
     } catch (e) {
-      log(`API Error: ${e.message}`, 'error');
+      log(`API error: ${e.message}`, 'error');
       return null;
     }
   }
 
-  // Fetch Balance
-  async function fetchBalance() {
-    log('Fetching balance...');
-    const data = await japApi({ action: 'balance' });
-    if (data && data.balance) {
-      document.getElementById('balanceDisplay').textContent = `Balance: $${parseFloat(data.balance).toFixed(2)}`;
-      log(`Balance: $${parseFloat(data.balance).toFixed(2)}`, 'success');
-    } else {
-      log('Failed to fetch balance. Check API key.', 'error');
-    }
-  }
-
-  // Built-in TikTok Scraper
-  async function scrapeTikTok() {
-    const profileUrl = document.getElementById('profileUrl').value.trim();
-    if (!profileUrl || !profileUrl.includes('tiktok.com/@')) {
-      log('Enter a valid TikTok profile URL (e.g. https://www.tiktok.com/@username)', 'error');
-      return;
-    }
-
-    const fetchBtn = document.getElementById('fetchBtn');
-    const scrapeStatus = document.getElementById('scrapeStatus');
-    const scrapeMsg = document.getElementById('scrapeMsg');
-
-    fetchBtn.disabled = true;
-    fetchBtn.innerHTML = '<span class="spinner"></span> Scraping...';
-    scrapeStatus.style.display = 'block';
-    scrapeMsg.textContent = 'Opening profile...';
-    log(`Scraping profile: ${profileUrl}`, 'info');
-
-    // Open popup
-    const popup = window.open(profileUrl, 'tiktok_scraper', 'width=1100,height=800');
-
-    if (!popup) {
-      log('Popup blocked! Allow popups for this site and try again.', 'error');
-      fetchBtn.disabled = false;
-      fetchBtn.innerHTML = '⚡ Scrape Videos';
-      scrapeStatus.style.display = 'none';
-      return;
-    }
-
-    // Wait for page to load
-    scrapeMsg.textContent = 'Waiting for page to load...';
-    await new Promise(r => setTimeout(r, 4000));
+  // ─── Auto-grab API key from JAP settings ───
+  $('bl-grab-key').addEventListener('click', async () => {
+    const status = $('bl-key-status');
+    status.textContent = 'Fetching settings page...';
+    status.className = 'bl-key-status';
 
     try {
-      // Inject the auto-scroll scraper into the popup
-      const scraperCode = `
-        (async () => {
-          // Auto-scroll to load all videos
-          let prevHeight = 0;
-          let stuckCount = 0;
-          while (stuckCount < 3) {
-            window.scrollTo(0, document.body.scrollHeight);
-            await new Promise(r => setTimeout(r, 1500));
-            if (document.body.scrollHeight === prevHeight) {
-              stuckCount++;
-            } else {
-              stuckCount = 0;
-            }
-            prevHeight = document.body.scrollHeight;
+      const res = await fetch('https://justanotherpanel.com/settings', { credentials: 'include' });
+      const html = await res.text();
+
+      // Try to find API key in the settings page HTML
+      // Common patterns: input field with API key value, or text containing the key
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Look for input fields that might contain the API key
+      let foundKey = '';
+
+      // Check all input fields for API key patterns (long hex/alphanumeric strings)
+      doc.querySelectorAll('input').forEach(inp => {
+        const val = (inp.value || '').trim();
+        // API keys are typically 32+ char hex/alphanumeric
+        if (val.length >= 20 && /^[a-f0-9]+$/i.test(val)) {
+          foundKey = val;
+        }
+      });
+
+      // Also check for elements with specific labels/ids
+      if (!foundKey) {
+        doc.querySelectorAll('[id*="api"], [name*="api"], [class*="api"]').forEach(el => {
+          const val = (el.value || el.textContent || '').trim();
+          if (val.length >= 20 && /^[a-f0-9]+$/i.test(val)) {
+            foundKey = val;
           }
+        });
+      }
 
-          // Collect all video links
-          const links = [...document.querySelectorAll('a[href*="/video/"]')]
-            .map(a => a.href)
-            .filter((v, i, arr) => arr.indexOf(v) === i);
-
-          // Send back to parent
-          window.opener.postMessage({ type: 'tiktok_scrape_result', links: links }, '*');
-        })();
-      `;
-
-      // Listen for results from the popup
-      const resultPromise = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Scrape timed out after 120s'));
-        }, 120000);
-
-        window.addEventListener('message', function handler(e) {
-          if (e.data && e.data.type === 'tiktok_scrape_result') {
-            clearTimeout(timeout);
-            window.removeEventListener('message', handler);
-            resolve(e.data.links);
+      // Check for code/pre/span elements that might contain the key
+      if (!foundKey) {
+        doc.querySelectorAll('code, pre, span, div, p, td').forEach(el => {
+          const val = (el.textContent || '').trim();
+          if (val.length >= 20 && val.length <= 80 && /^[a-f0-9]+$/i.test(val)) {
+            foundKey = val;
           }
+        });
+      }
+
+      if (foundKey) {
+        $('bl-apikey').value = foundKey;
+        status.textContent = '✓ API key auto-grabbed!';
+        status.className = 'bl-key-status found';
+        log('API key auto-grabbed from settings!', 'success');
+        // Auto-check balance
+        const bal = await japApi({ action: 'balance' });
+        if (bal?.balance) {
+          $('bl-balance').textContent = `Balance: $${parseFloat(bal.balance).toFixed(2)}`;
+          log(`Balance: $${parseFloat(bal.balance).toFixed(2)}`, 'success');
+        }
+      } else {
+        status.textContent = '✗ Could not find key. Go to Settings > API and copy it manually.';
+        status.className = 'bl-key-status missing';
+        log('Could not auto-detect key. Paste it manually.', 'error');
+        // Open settings in new tab for easy copy
+        window.open('https://justanotherpanel.com/settings', '_blank');
+      }
+    } catch (e) {
+      status.textContent = `✗ Error: ${e.message}`;
+      status.className = 'bl-key-status missing';
+      log(`Grab failed: ${e.message}`, 'error');
+    }
+  });
+
+  // ─── Check balance ───
+  $('bl-check-bal').addEventListener('click', async () => {
+    log('Checking balance...');
+    const data = await japApi({ action: 'balance' });
+    if (data?.balance) {
+      $('bl-balance').textContent = `Balance: $${parseFloat(data.balance).toFixed(2)}`;
+      log(`Balance: $${parseFloat(data.balance).toFixed(2)}`, 'success');
+    } else {
+      log('Failed — check API key.', 'error');
+    }
+  });
+
+  // ─── TikTok Scraper via GM_xmlhttpRequest (bypasses CORS) ───
+  $('bl-scrape').addEventListener('click', async () => {
+    const profileUrl = $('bl-profile').value.trim();
+    if (!profileUrl || !profileUrl.includes('tiktok.com/@')) {
+      log('Enter a valid TikTok profile URL.', 'error');
+      return;
+    }
+
+    const btn = $('bl-scrape');
+    const status = $('bl-scrape-status');
+    const msg = $('bl-scrape-msg');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Scraping...';
+    status.classList.add('visible');
+    msg.textContent = 'Fetching profile page...';
+    log(`Scraping: ${profileUrl}`, 'info');
+
+    try {
+      // Use GM_xmlhttpRequest to bypass CORS and fetch TikTok profile HTML
+      const html = await new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+          method: 'GET',
+          url: profileUrl,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+          onload: (res) => resolve(res.responseText),
+          onerror: (err) => reject(new Error('Request failed')),
+          ontimeout: () => reject(new Error('Request timed out')),
+          timeout: 30000
         });
       });
 
-      scrapeMsg.textContent = 'Scrolling & collecting videos...';
-      log('Injecting scraper — auto-scrolling to load all videos...', 'info');
+      msg.textContent = 'Parsing video links...';
 
-      // Inject the script
-      popup.eval(scraperCode);
+      // Extract video links from the HTML
+      let links = [];
 
-      // Wait for results
-      const links = await resultPromise;
+      // Method 1: Find video links in HTML href attributes
+      const hrefRegex = /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/(\d+)/g;
+      let match;
+      while ((match = hrefRegex.exec(html)) !== null) {
+        links.push(match[0]);
+      }
 
-      // Close popup
-      popup.close();
+      // Method 2: Parse JSON data embedded in the page (SIGI_STATE or __UNIVERSAL_DATA_FOR_REHYDRATION__)
+      const jsonPatterns = [
+        /<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/,
+        /<script id="SIGI_STATE"[^>]*>([\s\S]*?)<\/script>/,
+        /window\['SIGI_STATE'\]\s*=\s*(\{[\s\S]*?\});/
+      ];
+
+      for (const pattern of jsonPatterns) {
+        const jsonMatch = html.match(pattern);
+        if (jsonMatch) {
+          try {
+            const data = JSON.parse(jsonMatch[1]);
+            // Walk through the JSON to find video IDs
+            const jsonStr = JSON.stringify(data);
+            const vidIdRegex = /"id"\s*:\s*"(\d{17,22})"/g;
+            let vidMatch;
+            while ((vidMatch = vidIdRegex.exec(jsonStr)) !== null) {
+              const username = profileUrl.match(/@([^\/\?]+)/)?.[1] || '';
+              const vidUrl = `https://www.tiktok.com/@${username}/video/${vidMatch[1]}`;
+              links.push(vidUrl);
+            }
+          } catch (e) { /* JSON parse failed, skip */ }
+        }
+      }
+
+      // Deduplicate
+      links = [...new Set(links)];
 
       if (links.length === 0) {
-        log('No videos found on this profile.', 'error');
+        log('No videos found in initial page. TikTok may require scrolling — use manual paste instead.', 'error');
+        log('Tip: Open profile in a tab, run the console scraper, paste links below.', 'info');
+
+        // Provide the console script
+        const consoleScript = `(async()=>{let p=0,s=0;while(s<3){window.scrollTo(0,document.body.scrollHeight);await new Promise(r=>setTimeout(r,1500));document.body.scrollHeight===p?s++:s=0;p=document.body.scrollHeight}const l=[...document.querySelectorAll('a[href*="/video/"]')].map(a=>a.href).filter((v,i,a)=>a.indexOf(v)===i);copy(l.join('\\n'));console.log(l.length+' links copied!')})()`;
+        log(`Console script: open DevTools on the profile tab and paste this:`, 'info');
+        console.log('TikTok Scraper Script (copy this):', consoleScript);
       } else {
-        videos = links.map(link => ({
-          url: link,
-          selected: true,
-          status: 'idle',
-          orders: []
-        }));
+        videos = links.map(url => ({ url, selected: true, status: 'idle', orders: [] }));
         renderVideos();
         updateStats();
-        log(`✓ Scraped ${links.length} videos!`, 'success');
-      }
+        log(`✓ Found ${links.length} videos from page HTML!`, 'success');
 
+        if (links.length < 30) {
+          log('Note: TikTok lazy-loads videos. For ALL videos, use the console scraper on the profile tab.', 'info');
+        }
+      }
     } catch (e) {
       log(`Scrape failed: ${e.message}`, 'error');
-      log('Fallback: use the manual paste option below, or copy this to the popup console:', 'info');
-      log(`Script: check the "paste links manually" section`, 'info');
-      try { popup.close(); } catch(_) {}
     }
 
-    fetchBtn.disabled = false;
-    fetchBtn.innerHTML = '⚡ Scrape Videos';
-    scrapeStatus.style.display = 'none';
-  }
+    btn.disabled = false;
+    btn.textContent = '⚡ Scrape';
+    status.classList.remove('visible');
+  });
 
-  // Load pasted links
-  function loadLinks() {
-    const raw = document.getElementById('linksInput').value.trim();
+  // ─── Manual links ───
+  $('bl-load-links').addEventListener('click', () => {
+    const raw = $('bl-links').value.trim();
     if (!raw) return;
-
-    const links = raw.split('\n')
-      .map(l => l.trim())
-      .filter(l => l.includes('tiktok.com') && l.includes('/video/'));
-
-    if (links.length === 0) {
-      log('No valid TikTok video links found.', 'error');
-      return;
-    }
-
-    videos = links.map(link => ({
-      url: link,
-      selected: true,
-      status: 'idle',
-      orders: []
-    }));
-
+    const links = raw.split('\n').map(l => l.trim()).filter(l => l.includes('/video/'));
+    if (!links.length) { log('No valid links.', 'error'); return; }
+    videos = links.map(url => ({ url, selected: true, status: 'idle', orders: [] }));
     renderVideos();
     updateStats();
-    log(`Loaded ${videos.length} videos.`, 'success');
-  }
+    log(`Loaded ${links.length} videos.`, 'success');
+  });
 
-  // Render video list
+  // ─── Render videos ───
   function renderVideos() {
-    const container = document.getElementById('videosTable');
-
-    if (videos.length === 0) {
-      container.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>No videos loaded.</p></div>`;
+    const c = $('bl-vid-table');
+    if (!videos.length) {
+      c.innerHTML = '<div class="bl-empty">No videos loaded yet.</div>';
+      $('bl-vid-count').textContent = '0';
       return;
     }
-
-    container.innerHTML = videos.map((v, i) => `
-      <div class="video-row ${v.selected ? 'selected' : ''}" data-index="${i}">
-        <input type="checkbox" ${v.selected ? 'checked' : ''} onchange="toggleVideo(${i})" />
-        <a href="${v.url}" target="_blank" class="video-link">${v.url}</a>
-        <div class="video-status status-${v.status}">${statusLabel(v)}</div>
+    c.innerHTML = videos.map((v, i) => `
+      <div class="bl-vid-row ${v.selected ? 'selected' : ''}">
+        <input type="checkbox" ${v.selected ? 'checked' : ''} data-i="${i}" />
+        <a href="${v.url}" target="_blank" class="bl-vid-link">${v.url.replace('https://www.tiktok.com/', '')}</a>
+        <div class="bl-vid-status st-${v.status}">${v.status === 'idle' ? '—' : v.status === 'pending' ? '⏳' : v.status === 'sent' ? `✓ ${v.orders.length}` : '✗'}</div>
       </div>
     `).join('');
-
-    document.getElementById('videoCount').textContent = videos.length;
+    $('bl-vid-count').textContent = videos.length;
   }
 
-  function statusLabel(v) {
-    if (v.status === 'idle') return '—';
-    if (v.status === 'pending') return '⏳ Sending...';
-    if (v.status === 'sent') return `✓ ${v.orders.length} orders`;
-    if (v.status === 'error') return '✗ Failed';
-    return v.status;
-  }
+  $('bl-vid-table').addEventListener('change', (e) => {
+    const i = e.target.dataset.i;
+    if (i !== undefined) {
+      videos[parseInt(i)].selected = e.target.checked;
+      renderVideos();
+      updateStats();
+    }
+  });
 
-  function toggleVideo(i) {
-    videos[i].selected = !videos[i].selected;
-    renderVideos();
-    updateStats();
-  }
+  $('bl-sel-all').addEventListener('click', () => { videos.forEach(v => v.selected = true); renderVideos(); updateStats(); });
+  $('bl-sel-none').addEventListener('click', () => { videos.forEach(v => v.selected = false); renderVideos(); updateStats(); });
 
-  function selectAll() {
-    videos.forEach(v => v.selected = true);
-    renderVideos();
-    updateStats();
-  }
+  // ─── Services ───
+  $('bl-services').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'toggle') {
+      btn.classList.toggle('active');
+      btn.textContent = btn.classList.contains('active') ? '✓' : '✗';
+      updateStats();
+    }
+    if (btn.dataset.action === 'remove') {
+      btn.closest('.bl-svc-row').remove();
+      updateStats();
+    }
+  });
 
-  function deselectAll() {
-    videos.forEach(v => v.selected = false);
-    renderVideos();
-    updateStats();
-  }
-
-  // Services
-  function toggleService(btn) {
-    btn.classList.toggle('active');
-    btn.textContent = btn.classList.contains('active') ? '✓' : '✗';
-    updateStats();
-  }
-
-  function removeService(btn) {
-    const row = btn.closest('.service-row');
-    row.remove();
-    updateStats();
-  }
-
-  function addService() {
-    const list = document.getElementById('servicesList');
+  $('bl-add-svc').addEventListener('click', () => {
     const row = document.createElement('div');
-    row.className = 'service-row';
+    row.className = 'bl-svc-row';
     row.innerHTML = `
-      <div>
-        <label>Service Name</label>
-        <input type="text" placeholder="e.g. TikTok Views" class="svc-name" />
-      </div>
-      <div>
-        <label>Service ID</label>
-        <input type="text" placeholder="e.g. 9999" class="svc-id" />
-      </div>
-      <div>
-        <label>Quantity</label>
-        <input type="number" value="500" class="svc-qty" />
-      </div>
-      <button class="service-toggle active" onclick="toggleService(this)" title="Toggle on/off">✓</button>
-      <button class="service-remove" onclick="removeService(this)" title="Remove service">✕</button>
+      <input type="text" class="bl-input svc-name" placeholder="Name" />
+      <input type="text" class="bl-input svc-id" placeholder="ID" />
+      <input type="number" class="bl-input svc-qty" value="500" placeholder="Qty" />
+      <button class="bl-svc-btn active" data-action="toggle">✓</button>
+      <button class="bl-svc-btn remove" data-action="remove">✕</button>
     `;
-    list.appendChild(row);
+    $('bl-services').appendChild(row);
     updateStats();
-  }
+  });
 
   function getActiveServices() {
-    const rows = document.querySelectorAll('.service-row');
-    const services = [];
-    rows.forEach(row => {
-      const toggle = row.querySelector('.service-toggle');
-      if (!toggle.classList.contains('active')) return;
-      const id = row.querySelector('.svc-id').value.trim();
-      const qty = parseInt(row.querySelector('.svc-qty').value) || 0;
-      const name = row.querySelector('.svc-name').value.trim();
-      if (id && qty > 0) {
-        services.push({ id, qty, name });
-      }
+    const svcs = [];
+    document.querySelectorAll('.bl-svc-row').forEach(row => {
+      const t = row.querySelector('[data-action="toggle"]');
+      if (!t?.classList.contains('active')) return;
+      const id = row.querySelector('.svc-id')?.value.trim();
+      const qty = parseInt(row.querySelector('.svc-qty')?.value) || 0;
+      const name = row.querySelector('.svc-name')?.value.trim() || 'Service';
+      if (id && qty > 0) svcs.push({ id, qty, name });
     });
-    return services;
+    return svcs;
   }
 
   function updateStats() {
-    const selected = videos.filter(v => v.selected).length;
-    const services = getActiveServices();
-    const total = selected * services.length;
-
-    document.getElementById('selectedCount').textContent = selected;
-    document.getElementById('activeServices').textContent = services.length;
-    document.getElementById('totalOrders').textContent = total;
-    document.getElementById('blastBtn').disabled = total === 0;
+    const sel = videos.filter(v => v.selected).length;
+    const svcs = getActiveServices();
+    $('bl-sel-count').textContent = sel;
+    $('bl-svc-count').textContent = svcs.length;
+    $('bl-order-count').textContent = sel * svcs.length;
+    $('bl-blast').disabled = sel * svcs.length === 0;
   }
 
-  // Re-calc on input changes
   document.addEventListener('input', (e) => {
-    if (e.target.closest('.service-row')) updateStats();
+    if (e.target.closest('.bl-svc-row')) updateStats();
   });
 
-  // MASS BLAST
-  async function massBlast() {
-    const apiKey = getApiKey();
-    if (!apiKey) { log('Set your API key first!', 'error'); return; }
+  // ─── MASS BLAST ───
+  $('bl-blast').addEventListener('click', async () => {
+    const key = $('bl-apikey').value.trim();
+    if (!key) { log('Set API key first!', 'error'); return; }
 
-    const services = getActiveServices();
-    if (services.length === 0) { log('No active services configured.', 'error'); return; }
+    const svcs = getActiveServices();
+    if (!svcs.length) { log('No active services.', 'error'); return; }
 
     const selected = videos.filter(v => v.selected);
-    if (selected.length === 0) { log('No videos selected.', 'error'); return; }
+    if (!selected.length) { log('No videos selected.', 'error'); return; }
 
-    const total = selected.length * services.length;
-    log(`🚀 Starting mass send: ${selected.length} videos × ${services.length} services = ${total} orders`, 'info');
+    const total = selected.length * svcs.length;
+    log(`🚀 Blasting: ${selected.length} videos × ${svcs.length} services = ${total} orders`, 'info');
 
-    document.getElementById('blastBtn').disabled = true;
-    document.getElementById('blastBtn').innerHTML = '<span class="spinner"></span> SENDING...';
+    const btn = $('bl-blast');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="bl-spinner"></span> SENDING...';
 
-    let successCount = 0;
-    let errorCount = 0;
+    let ok = 0, fail = 0;
 
     for (const video of selected) {
       video.status = 'pending';
       video.orders = [];
       renderVideos();
 
-      let videoSuccess = true;
+      let allGood = true;
 
-      for (const svc of services) {
+      for (const svc of svcs) {
         try {
-          const data = await japApi({
-            action: 'add',
-            service: svc.id,
-            link: video.url,
-            quantity: svc.qty
-          });
-
-          if (data && data.order) {
+          const data = await japApi({ action: 'add', service: svc.id, link: video.url, quantity: svc.qty });
+          if (data?.order) {
             video.orders.push({ service: svc.name, orderId: data.order });
-            log(`✓ Order #${data.order} — ${svc.name} (${svc.qty}) → ...${video.url.slice(-20)}`, 'success');
-            successCount++;
+            log(`✓ #${data.order} ${svc.name} (${svc.qty}) → ...${video.url.slice(-18)}`, 'success');
+            ok++;
           } else {
-            const errMsg = data?.error || 'Unknown error';
-            log(`✗ Failed: ${svc.name} → ...${video.url.slice(-20)} — ${errMsg}`, 'error');
-            errorCount++;
-            videoSuccess = false;
+            log(`✗ ${svc.name} → ${data?.error || 'Unknown error'}`, 'error');
+            fail++;
+            allGood = false;
           }
-
-          // Small delay to avoid rate limiting
           await new Promise(r => setTimeout(r, 300));
-
         } catch (e) {
-          log(`✗ Error: ${svc.name} → ${e.message}`, 'error');
-          errorCount++;
-          videoSuccess = false;
+          log(`✗ ${svc.name}: ${e.message}`, 'error');
+          fail++;
+          allGood = false;
         }
       }
 
-      video.status = videoSuccess ? 'sent' : 'error';
+      video.status = allGood ? 'sent' : 'error';
       renderVideos();
     }
 
-    log(`🏁 Done! ${successCount} successful, ${errorCount} failed out of ${total} total.`, successCount > 0 ? 'success' : 'error');
-
-    document.getElementById('blastBtn').innerHTML = '⚡ MASS SEND';
-    document.getElementById('blastBtn').disabled = false;
+    log(`🏁 Done! ${ok} sent, ${fail} failed.`, ok > 0 ? 'success' : 'error');
+    btn.innerHTML = '⚡ MASS SEND';
+    btn.disabled = false;
 
     // Refresh balance
-    fetchBalance();
-  }
-</script>
-</body>
-</html>
+    const bal = await japApi({ action: 'balance' });
+    if (bal?.balance) $('bl-balance').textContent = `Balance: $${parseFloat(bal.balance).toFixed(2)}`;
+  });
+
+  // ─── Init ───
+  updateStats();
+  log('TikTok Blaster loaded. You\'re on JAP — API calls go same-origin, no CORS issues.', 'info');
+
+})();
